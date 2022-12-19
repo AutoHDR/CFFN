@@ -3,7 +3,7 @@ This repository contains an implementation for the paper "Coarse-to-Fine Face No
 
 The paper propose a coarse-to-fine framework that can effectively predict normals from face images in-the-wild. More concretely, we first build a model using limited training data to obtain a coarse (low-quality) normal map of a real face image.
 
-<center><img src="results/r1.jpg" width="80%"></center>
+<center><img src="results/r1.jpg" width="100%"></center>
 From top to bottom are the input face, predicted albedo, predicted shading, visualized light and predicted normal.
 
 
