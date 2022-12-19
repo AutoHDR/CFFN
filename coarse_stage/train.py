@@ -41,7 +41,7 @@ def train(
     args,
     train_data,
     test_data,
-    DDA2PH,
+    CoarseNet,
     g_optim,
     device,
 ):
@@ -85,13 +85,13 @@ def train(
 
         gtN = F.normalize(gt_n)
 
-        DDA2PH.train()
-        requires_grad(DDA2PH, True)
+        CoarseNet.train()
+        requires_grad(CoarseNet, True)
         
         # ph_face_grey = (ph_face[:,0,:,:]+ph_face[:,1,:,:]+ph_face[:,2,:,:])/3
         # ph_face_grey = ph_face_grey.unsqueeze(1)
 
-        genN = DDA2PH(ph_face)
+        genN = CoarseNet(ph_face)
         genN = F.normalize(genN)  
         recon_N = torch.ones(1).to(device) - CosLoss(genN, gtN).mean()
 
@@ -129,7 +129,7 @@ def train(
             save_image(sampleImgs, imgsPath + '%d'%(25) + '_.png', nrow=b, normalize=True)
             
         if i % 50000 == 0 and i!=0:
-            torch.save(DDA2PH.state_dict(),f"%s/{str(i).zfill(6)}_DDA2PH.pkl"%(expPath))
+            torch.save(CoarseNet.state_dict(),f"%s/{str(i).zfill(6)}_CoarseNet.pkl"%(expPath))
             torch.save(D_F.state_dict(),f"%s/{str(i).zfill(6)}_DF.pkl"%(expPath))
 
             with torch.no_grad():
@@ -140,7 +140,7 @@ def train(
                 #     tpimg_tensor = tpimg_tensor.to(device)
                 #     # t3_grey = (tpimg_tensor[:,0,:,:]+tpimg_tensor[:,1,:,:]+tpimg_tensor[:,2,:,:])/3
                 #     # t3_grey = t3_grey.unsqueeze(1)                        
-                #     ph_fine_normal = DDA2PH(tpimg_tensor) #[-1, 1]
+                #     ph_fine_normal = CoarseNet(tpimg_tensor) #[-1, 1]
                 #     ph_fine_normal = F.normalize(ph_fine_normal)
                 #     save_image(get_normal_255(ph_fine_normal), logPath + str(i) + '_' +  tpimg.split('/')[-1], nrow=1, normalize=True)
                 #     break
@@ -150,7 +150,7 @@ def train(
                 sum_n20 = 0
                 sum_n25 = 0
                 sum_n30 = 0
-                DDA2PH.eval()
+                CoarseNet.eval()
                 for bix, batch in enumerate(test_data):
                     ph_face, gt_n, mask, index = batch
                     b, c, w, h = ph_face.shape
@@ -161,7 +161,7 @@ def train(
                     # ph_face_grey = ph_face_grey.unsqueeze(1)
                     gt_n = gt_n.to(device)
  
-                    ph_fine_normal = DDA2PH(ph_face) #[-1, 1]
+                    ph_fine_normal = CoarseNet(ph_face) #[-1, 1]
                     ph_fine_normal = F.normalize(ph_fine_normal)
 
                     std, mean, n20, n25, n30 =  get_Normal_Std_Mean(ph_fine_normal, gt_n, mask)
@@ -196,7 +196,7 @@ if __name__ == "__main__":
     parser.add_argument("--iter", type=int, default=200000)
     parser.add_argument("--batch", type=int, default=8)
     parser.add_argument("--ckpt", type=str, default=None)
-    # parser.add_argument("--ckpt", type=str, default='/home/xteam1/2022/HFFNE/pretrain/P1_result/UNet_W_Sagan/exp2/050000_DDA2PH.pkl')
+    # parser.add_argument("--ckpt", type=str, default='/home/xteam1/2022/HFFNE/pretrain/P1_result/UNet_W_Sagan/exp2/050000_CoarseNet.pkl')
     parser.add_argument("--lr", type=float, default=0.0001)
     parser.add_argument("--exp_name", type=str, default="CycleGAN_SAGAN_8020")
     parser.add_argument("--wandb", action="store_true")
@@ -212,11 +212,10 @@ if __name__ == "__main__":
     n_gpu = int(os.environ["WORLD_SIZE"]) if "WORLD_SIZE" in os.environ else 1
 
     args.start_iter = 0
-    DDA2PH = CycleGANGen(3, 3).to(device)
-    # DDA2PH = SfSNet().to(device)
+    CoarseNet = CycleGANGen(3, 3).to(device)
 
     g_optim = optim.Adam(
-        list(DDA2PH.parameters()),
+        list(CoarseNet.parameters()),
         lr=args.lr,
         betas=(0.9, 0.99),
     )
@@ -230,7 +229,7 @@ if __name__ == "__main__":
         except ValueError:
             pass
         
-        DDA2PH.load_state_dict(ckpt)
+        CoarseNet.load_state_dict(ckpt)
         # g_optim.load_state_dict(ckpt["g_optim"])
 
     pathd = '/home/xteam1/2022/HFFNE/data/csv/p1_PF_train.csv'
@@ -244,7 +243,7 @@ if __name__ == "__main__":
         args,
         syn_train_dl,
         syn_val_dl,
-        DDA2PH,
+        CoarseNet,
         g_optim,
         device,
     )
