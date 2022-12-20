@@ -360,7 +360,7 @@ if __name__ == "__main__":
     train_dataset, _ = get_300W_phdb_patch(csvPath=pathd, validation_split=0)
     train_dl  = DataLoader(train_dataset, batch_size=args.batch, shuffle=True, num_workers=8)
 
-    pathd = '/home/xteam1/2022/HFFNE/data/csv/FFHQ_test_6imgs.csv'
+    pathd = '/home/xteam1/2022/HFFNE/data/csv/FFHQ_test.csv'
     train_dataset, _ = get_300W_phdb_patch(csvPath=pathd, validation_split=0)
     val_dl  = DataLoader(train_dataset, batch_size=args.batch, shuffle=True, num_workers=8)
 
